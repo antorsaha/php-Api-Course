@@ -1,0 +1,14 @@
+{
+    "require": {
+        "guzzlehttp/guzzle": "^7.5",
+        "vlucas/phpdotenv": "^5.5"
+    },
+    
+    "autoload":{
+        "psr-4": {
+            "": "Task_management_api/src"
+        }
+    }
+
+    
+}
