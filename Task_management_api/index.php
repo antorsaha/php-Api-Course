@@ -1,23 +1,12 @@
 <?php
 
 declare(strict_types=1);
+require __DIR__ . "/bootstrap.php";
 
-use Dotenv\Dotenv;
+use GuzzleHttp\Psr7\Message;
 
 //ini_set("display_errors", "On");
 
-require dirname(__DIR__) . "/vendor/autoload.php";
-
-//Error handler
-set_error_handler("ExecptionHandeler::handleError");
-//exception handeler
-set_exception_handler("ExecptionHandeler::handleException");
-
-//Set header for response type
-header("Content-type: application/json; charset = UTF-8");
-
-$dotnenv = Dotenv::createImmutable(dirname(__DIR__) . "/Task_management_api");
-$dotnenv->load();
 
 //get page url
 //this will print full request url including query string
@@ -75,14 +64,19 @@ echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
 */
 
 
-
-
-
-
-
-
-
 $database = new Database();
+
+$users_getway = new UsersGetway($database);
+
+$auth = new Auth($users_getway);
+if (!$auth->authApiByKey()) {
+    exit;
+}
+
+$user_id = $auth -> getUserId();
+
+
+
 $conn = $database->getConnection();
 
 $database_creation_sql = "CREATE DATABASE IF NOT EXISTS " . $_ENV["DB_NAME"];
@@ -94,5 +88,5 @@ $conn->exec($database_creation_sql);
 
 $getway = new TaskGetway($database);
 
-$controller = new TaskController($getway);
+$controller = new TaskController($getway, $user_id);
 $controller->processRequest(method: $_SERVER["REQUEST_METHOD"], id: $id);

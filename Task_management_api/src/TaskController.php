@@ -3,8 +3,10 @@ class TaskController
 {
 
 
-    public function __construct(private TaskGetway $taskGetway)
-    {
+    public function __construct(
+        private TaskGetway $taskGetway,
+        private int $user_id
+    ) {
     }
 
     public function processRequest(string $method, ?string $id): void
@@ -14,7 +16,7 @@ class TaskController
             switch ($method) {
                 case "GET":
                     //Get all data from the database
-                    $responseArray = $this->taskGetway->getAllTasks();
+                    $responseArray = $this->taskGetway->getAllTasksForUser($this->user_id);
                     if (!empty($responseArray))
                         echo json_encode(["error" => "false", "data" => $responseArray]);
                     //echo json_encode($responseArray);
@@ -32,7 +34,7 @@ class TaskController
                         return;
                     }
 
-                    $id = $this->taskGetway->create($data);
+                    $id = $this->taskGetway->createForUser($this->user_id, $data);
                     $this->respondCreateSuccessfully($id);
 
                     break;
@@ -42,7 +44,7 @@ class TaskController
             }
         } else {
 
-            $task = $this->taskGetway->getTask(id: $id);
+            $task = $this->taskGetway->getTaskForUser($this->user_id, id: $id);
             if ($task === false) {
                 $this->respondNotFound($id);
                 return;
@@ -64,12 +66,12 @@ class TaskController
                         return;
                     }
 
-                    $rows = $this->taskGetway->update($id, $data);
+                    $rows = $this->taskGetway->updateForUser($this->user_id, $id, $data);
                     echo json_encode(["message" => "Task updated", "rows" => $rows]);
                     break;
 
                 case "DELETE":
-                    $rows = $this->taskGetway->delete($id);
+                    $rows = $this->taskGetway->deleteForUser($this->user_id, $id);
                     echo json_encode(["message" => "Task deleted", "rows" => $rows]);
 
                     break;

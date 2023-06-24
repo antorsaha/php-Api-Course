@@ -9,12 +9,18 @@ class TaskGetway
         $this->conn = $database->getConnection();
     }
 
-    public function getAllTasks(): array
+    public function getAllTasksForUser(int $user_id): array
     {
 
-        $sql = "SELECT * FROM task ORDER BY name";
+        $sql = "SELECT * 
+        FROM task 
+        WHERE user_id = :user_id
+        ORDER BY name";
 
-        $smt = $this->conn->query($sql);
+        $smt = $this->conn->prepare($sql);
+        $smt->bindValue(":user_id", $user_id, PDO::PARAM_INT);
+        $smt->execute();
+
         //return $smt ->fetchAll(PDO::FETCH_ASSOC);
 
 
@@ -26,14 +32,16 @@ class TaskGetway
         return $data;
     }
 
-    public function getTask(String $id): array | false
+    public function getTaskForUser(int $user_id, String $id): array | false
     {
         $sql = "SELECT * 
-        FROM task 
-        WHERE id = :id";
+        FROM task
+        WHERE id = :id
+        AND user_id = :user_id";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(":id", $id, PDO::PARAM_INT);
+        $stmt ->bindValue(":user_id", $user_id, PDO::PARAM_INT);
         $stmt->execute();
 
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -44,10 +52,10 @@ class TaskGetway
         return $data;
     }
 
-    public function create(array $data)
+    public function createForUser(int $user_id, array $data)
     {
-        $sql = "INSERT INTO task (name, prority, is_completed) 
-                VALUES (:name, :prority, :is_completed)";
+        $sql = "INSERT INTO task (name, prority, is_completed, user_id) 
+                VALUES (:name, :prority, :is_completed, :user_id)";
 
         $stmt = $this->conn->prepare($sql);
 
@@ -59,13 +67,14 @@ class TaskGetway
         }
 
         $stmt->bindValue(":is_completed", $data["is_completed"] ?? false, PDO::PARAM_BOOL);
+        $stmt->bindValue(":user_id", $user_id, PDO::PARAM_INT);
 
         $stmt->execute();
 
         return $this->conn->lastInsertId();
     }
 
-    public function update(string $id, array $data) : int
+    public function updateForUser(int $user_id, string $id, array $data): int
     {
         $fields = [];
 
@@ -98,32 +107,34 @@ class TaskGetway
 
             $sql = "UPDATE task"
                 . " SET " . implode(", ", $sets)
-                . " WHERE id = :id";
+                . " WHERE id = :id"
+                . " AND user_id = :user_id";
 
-            
-                $stmt = $this->conn->prepare($sql);
 
-                $stmt->bindValue(":id", $id, PDO::PARAM_INT);
+            $stmt = $this->conn->prepare($sql);
 
-                foreach($fields as $name => $values){
-                    $stmt->bindValue(":$name", $values[0], $values[1]);
-                }
+            $stmt->bindValue(":id", $id, PDO::PARAM_INT);
+            $stmt ->bindValue(":user_id", $user_id, PDO::PARAM_INT);
 
-                $stmt->execute();
+            foreach ($fields as $name => $values) {
+                $stmt->bindValue(":$name", $values[0], $values[1]);
+            }
 
-                return $stmt->rowCount();
-                
+            $stmt->execute();
+
+            return $stmt->rowCount();
         }
     }
 
-    public function delete(string $id) : int{
-        $sql = "DELETE FROM task WHERE id = :id";
+    public function deleteForUser(int $user_id, string $id): int
+    {
+        $sql = "DELETE FROM task WHERE id = :id AND user_id = :user_id";
 
         $stmt = $this->conn->prepare($sql);
-        $stmt ->bindValue(":id", $id, PDO::PARAM_INT);
+        $stmt->bindValue(":id", $id, PDO::PARAM_INT);
+        $stmt ->bindValue(":user_id", $user_id, PDO::PARAM_INT);
         $stmt->execute();
-        
+
         return $stmt->rowCount();
-        
     }
 }
