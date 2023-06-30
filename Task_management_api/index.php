@@ -69,7 +69,7 @@ $database = new Database();
 $users_getway = new UsersGetway($database);
 
 $auth = new Auth($users_getway);
-if (!$auth->authApiByKey()) {
+if (!$auth->authApiByAccessToken()) {
     exit;
 }
 

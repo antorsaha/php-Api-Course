@@ -21,4 +21,17 @@ class UsersGetway
 
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
+    public function getUserByUserName(String $username): array | false
+    {
+        $sql = "SELECT *
+                FROM users
+                WHERE user_name = :user_name";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt ->bindValue(":user_name", $username);
+        $stmt ->execute();
+
+        return $stmt ->fetch(PDO::FETCH_ASSOC);
+    }
 }
