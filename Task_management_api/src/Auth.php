@@ -4,7 +4,8 @@ class Auth
 {
     private int $user_id;
 
-    public function __construct(private UsersGetway $users_getway)
+    public function __construct(private UsersGetway $users_getway,
+                                private JWTCodec $codec)
     {
     }
 
@@ -44,7 +45,7 @@ class Auth
         }
 
         //var_dump($matches[1]);
-        $plain_text = base64_decode($matches[1]);
+        /*$plain_text = base64_decode($matches[1]);
 
         if($plain_text === false){
             http_response_code(400);
@@ -58,9 +59,18 @@ class Auth
             http_response_code(400);
             echo json_encode(["message" => "invalid json"]);
             return false;
-        }
+        }*/
 
-        $this ->user_id = $data["id"];
+        try{
+            $data = $this ->codec->decode($matches[1]);
+        }catch(Exception $e){
+            http_response_code(400);
+            echo json_encode(["message" => $e->getMessage()]);
+            return false;
+        }
+        
+
+        $this ->user_id = $data["sub"];
         return true;
     }
 }

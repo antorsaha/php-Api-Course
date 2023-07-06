@@ -68,7 +68,9 @@ $database = new Database();
 
 $users_getway = new UsersGetway($database);
 
-$auth = new Auth($users_getway);
+$codec = new JWTCodec($_ENV["SECRET_KEY"]);
+
+$auth = new Auth($users_getway, $codec);
 if (!$auth->authApiByAccessToken()) {
     exit;
 }
